@@ -1,0 +1,16 @@
+<form role="form" name="SignInForm" ng-controller="SignInCtrl" ng-submit="SignInForm.$valid && signIn(user)" novalidate>
+    <div class="form-group" ng-class="{'has-error': SignInForm.email.$invalid}">
+        <label for="email">Email address</label>
+        <input ng-model="user.email" class="form-control" name="email" type="email" placeholder="Email">
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input ng-model="user.password" type="password" class="form-control" id="password" placeholder="Password" required>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input ng-model="user.remember" type="checkbox">Remember Me
+        </label>
+    </div>
+    <button value="Submit" type="submit" class="btn btn-default">Submit</button>
+</form>
