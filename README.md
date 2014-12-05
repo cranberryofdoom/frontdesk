@@ -1,7 +1,5 @@
 # Frontdesk: Software Solutions For Homeless Shelters
 
-***
-
 ## Quick Start
 
 Install Node.js and then:
