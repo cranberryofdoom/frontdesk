@@ -4,70 +4,66 @@ angular.module( 'frontdesk.signIn', [
   ])
 
 // Route configuration
-.config(function config( $stateProvider ) {
+.config(function config($stateProvider) {
   $stateProvider.state( 'signIn', {
     url: '/signIn',
-    views: {
-      "main": {
-        controller: 'SignInCtrl',
-        templateUrl: 'signIn/signIn.tpl.html'
-      }
-    },
+    controller: 'SignInCtrl',
+    templateUrl: 'signIn/signIn.tpl.html',
     data:{ pageTitle: 'SignIn' }
   });
 })
 
-// Sign In Controller
-.controller('SignInCtrl', function SignInController( $scope, $rootScope, AUTH_EVENTS, AuthService ) {
+// Sign In controller
+.controller('SignInCtrl', function SignInController($scope, $rootScope, AUTH_EVENTS, AuthService) {
   $scope.user = {
     email: '',
     password: '',
     remember: false
   };
 
+  $scope.submitted = false;
+
   // Method that controls the request and response logic using the form data
-  $scope.signIn = function(user){
-    $scope.setCurrentUser(user);
-    // AuthService.signIn(user).then(function(){
-    //   $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
-    //   $scope.setCurrentUser(user);
-    // }, function(){
-    //   $rootScope.$broadcast(AUTH_EVENTS.loginFailed);
-    // });
+  $scope.signIn = function (user) {
+    if ($scope.SignInForm.$valid) {
+      var userSanitized = {
+        login: user.email,
+        password: user.password
+      };
+      AuthService.signIn(userSanitized).then(function () {
+        $rootScope.$broadcast(AUTH_EVENTS.loginSuccess);
+        $scope.setCurrentUser(userSanitized);
+      }, function (res) {
+        $rootScope.$broadcast(AUTH_EVENTS.loginFailed);
+      });
+    } else {
+      console.log($scope.SignInForm.email.$valid);
+      $scope.SignInForm.submitted = true;
+    }
   };
-
-  
 })
-
-// Constants
-.constant('AUTH_EVENTS', {
- loginSuccess: 'auth-login-success',
- loginFailed: 'auth-login-failed',
- logoutSuccess: 'auth-logout-success',
- sessionTimeout: 'auth-session-timeout',
- notAuthenticated: 'auth-not-authenticated',
- notAuthorized: 'auth-not-authorized'
-})
-
 
 // Factory that handles authentication
-.factory('AuthService', function ($http, Session) {
+.factory('AuthService', function ($http, Token) {
   var authService = {};
 
   // Method that sends the HTTP request
   authService.signIn = function (credentials) {
-    return $http.post('/login', credentials).then(function (res) {
-      
+    return $http.post('https://frontdesk-api.herokuapp.com/api/v1/auth/login', credentials).then(function (res) {
+
       // Create the user session
-      Session.create(res.data.id, res.data.user.id,
-       res.data.user.role);
-      return res.data.user;
+      Token.create(res.data.token, credentials.login);
+      return credentials.login;
+    }, function (res) {
+
+      // Throws error if incorrect credentials
+      throw res.statusText;
     });
   };
 
   // Method that returns the session
   authService.isAuthenticated = function () {
-    return !!Session.userId;
+    return !!Token.userId;
   };
 
   // Method that returns authorization
@@ -76,24 +72,32 @@ angular.module( 'frontdesk.signIn', [
       authorizedRoles = [authorizedRoles];
     }
     return (authService.isAuthenticated() &&
-      authorizedRoles.indexOf(Session.userRole) !== -1);
+      authorizedRoles.indexOf(Token.userRole) !== -1);
   };
 
   return authService;
 })
 
-// Service that contains all information about session, user and role
-.service('Session', function () {
-  this.create = function (sessionId, userId, userRole) {
-    this.id = sessionId;
+// Service that contains all information about token, user and role
+.service('Token', function () {
+  this.create = function (userToken, userId) {
+    this.id = userToken;
     this.userId = userId;
-    this.userRole = userRole;
   };
   this.destroy = function () {
     this.id = null;
     this.userId = null;
-    this.userRole = null;
   };
   return this;
+})
+
+// Constants
+.constant('AUTH_EVENTS', {
+  loginSuccess: 'auth-login-success',
+  loginFailed: 'auth-login-failed',
+  logoutSuccess: 'auth-logout-success',
+  sessionTimeout: 'auth-session-timeout',
+  notAuthenticated: 'auth-not-authenticated',
+  notAuthorized: 'auth-not-authorized'
 });
 
