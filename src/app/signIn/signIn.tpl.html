@@ -1,5 +1,5 @@
 <form role="form" name="SignInForm" ng-controller="SignInCtrl" ng-submit="signIn(user)" novalidate>
-    <div class="form-group" ng-class="{'has-error': SignInForm.email.$dirty && SignInForm.email.$invalid}">
+    <div class="form-group" ng-class="{'has-error': SignInForm.submitted && SignInForm.email.$invalid}">
         <label for="email">Email address</label>
         <input ng-model="user.email" class="form-control" name="email" type="email" placeholder="Email" required>
         <span class="help-block text-danger" ng-show="SignInForm.email.$error.required && SignInForm.email.$invalid && SignInForm.submitted">
@@ -9,9 +9,12 @@
             Invaild email.
         </span>
     </div>
-    <div class="form-group">
+    <div class="form-group" ng-class="{'has-error': SignInForm.submitted && SignInForm.password.$invalid}">
         <label for="password">Password</label>
-        <input ng-model="user.password" type="password" class="form-control" id="password" placeholder="Password" required>
+        <input ng-model="user.password" type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+        <span class="help-block text-danger" ng-show="SignInForm.password.$error.required && SignInForm.submitted">
+            Password required.
+        </span>
     </div>
     <div class="checkbox">
         <label>

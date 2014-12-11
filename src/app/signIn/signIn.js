@@ -37,7 +37,6 @@ angular.module( 'frontdesk.signIn', [
         $rootScope.$broadcast(AUTH_EVENTS.loginFailed);
       });
     } else {
-      console.log($scope.SignInForm.email.$valid);
       $scope.SignInForm.submitted = true;
     }
   };
